@@ -8,7 +8,7 @@
 
 This repository documents my progression through applied machine learning. Every file focuses on understanding the reasoning behind each decision — not just producing output.
 
-The learning path follows a deliberate sequence: data exploration → first model → validation → optimization → competition submission → preprocessing → model tuning → leakage detection → data manipulation fundamentals.
+The learning path follows a deliberate sequence: data exploration → first model → validation → optimization → competition submission → preprocessing → model tuning → leakage detection → data manipulation fundamentals → model explainability.
 
 ---
 
@@ -40,6 +40,11 @@ ml-projects-core/
 │   ├── grouping_and_sorting.py
 │   ├── data_types_and_missing_values.py
 │   └── renaming_and_combining.py
+│
+├── ml-explainability/
+│   ├── ex2_permutation_importance.py
+│   ├── ex4_shap_values.py
+│   └── ex5_advanced_shap_values.py
 │
 └── README.md
 ```
@@ -156,6 +161,27 @@ Key insight: `concat()` stacks rows from tables with identical columns. `join()`
 
 ---
 
+## Module 04 — ML Explainability
+
+Machine learning models should not feel like black boxes. This module covers the tools to inspect what a trained model actually learned, why it makes the predictions it does, and how much to trust it — using a NYC taxi fare model and a hospital patient readmission model.
+
+### `ex2_permutation_importance.py`
+Calculated which features a Random Forest taxi fare model actually relies on by shuffling one feature at a time and measuring how much validation error increases.
+
+Key insight: `dropoff_latitude` and `pickup_latitude` carried far more weight than the longitude features, and `passenger_count` was effectively irrelevant. After engineering `abs_lat_change` and `abs_lon_change` (raw distance traveled), those two features dominated importance scores completely — confirming that distance, not raw location, is what actually drives fare price.
+
+### `ex4_shap_values.py`
+Built a condensed, doctor-facing model overview for a hospital readmission risk model using a single SHAP summary plot, then used Partial Dependence Plots to isolate how `number_inpatient` and `time_in_hospital` individually affect predictions.
+
+Key insight: comparing a Partial Dependence Plot against the raw readmission rate for `time_in_hospital` confirmed the model wasn't missing an obvious signal. Also built a `patient_risk_factors()` function using `shap.force_plot()` to generate a per-patient breakdown of exactly which features raised or lowered that individual's readmission risk.
+
+### `ex5_advanced_shap_values.py`
+Went deeper into feature interactions on the same readmission model, comparing `diag_1_428` against `payer_code_?`, and `num_medications` against `num_lab_procedures`.
+
+Key insight: SHAP dependence plots revealed a difference invisible in the summary plot alone — `num_medications` showed a clear upward trend at higher values, while `num_lab_procedures` stayed flat and noisy across its whole range, meaning its effect is spread out rather than concentrated at any particular value.
+
+---
+
 ## Kaggle Competition
 
 **Housing Prices Competition for Kaggle Learn Users**
@@ -208,6 +234,15 @@ Splitting data into groups based on shared column values, then computing per-gro
 **Combining Datasets**
 `concat()` for stacking structurally identical tables, `join()`/`merge()` for relational joins based on a shared key column.
 
+**Permutation Importance**
+Shuffling a single feature's values and measuring the resulting drop in model accuracy — a large drop means the model relies heavily on that feature.
+
+**Partial Dependence Plots**
+Isolate how one feature affects predictions on average, holding all other features constant, revealing the shape of a feature's relationship with the target.
+
+**SHAP Values**
+Break down an individual prediction into the contribution of each feature — how much each one pushed the prediction above or below the average, enabling both model-level summaries and per-prediction explanations.
+
 ---
 
 ## Tech Stack
@@ -215,9 +250,10 @@ Splitting data into groups based on shared column values, then computing per-gro
 ```
 Language      Python 3.11+
 Environment   Kaggle Notebooks
-Libraries     pandas · scikit-learn · xgboost · matplotlib
-Models        DecisionTreeRegressor · RandomForestRegressor · XGBRegressor
-Techniques    Pipelines · ColumnTransformer · Cross-Validation · GroupBy · Merging
+Libraries     pandas · scikit-learn · xgboost · matplotlib · eli5 · shap
+Models        DecisionTreeRegressor · RandomForestRegressor · RandomForestClassifier · XGBRegressor
+Techniques    Pipelines · ColumnTransformer · Cross-Validation · GroupBy · Merging ·
+              Permutation Importance · Partial Dependence Plots · SHAP Values
 Metric        Mean Absolute Error
 ```
 
@@ -238,6 +274,9 @@ Metric        Mean Absolute Error
 - [x] XGBoost — gradient boosting
 - [x] Data leakage — target leakage and train-test contamination
 - [x] Pandas — data manipulation, indexing, grouping, and combining
+- [x] Permutation importance — feature importance via shuffling
+- [x] Partial dependence plots — isolating individual feature effects
+- [x] SHAP values — per-prediction and per-patient explainability
 - [ ] Titanic competition — binary classification
 - [ ] FlowZint Hackathon — Titanic Survival Predictor web app
 
